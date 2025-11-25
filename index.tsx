@@ -128,8 +128,8 @@ const soundManager = new SoundManager();
 
 // --- Background & Visuals ---
 const LEVEL_IMAGES = {
-  1: "https://lh3.googleusercontent.com/d/1JUcHxpLWZ9KXAsTxrG5l2XLO7J2dEHKQ", 
-  2: "https://lh3.googleusercontent.com/d/1Y4sjh-PVZVMhqaaOvW063fU2X3h6HEC1", 
+  1: "https://lh3.googleusercontent.com/d/1JUcHxpLWZ9KXAsTxrG5l2XLO7J2dEHKQ?q=80&w=1000&auto=format&fit=crop", 
+  2: "https://lh3.googleusercontent.com/d/1Y4sjh-PVZVMhqaaOvW063fU2X3h6HEC1?q=80&w=1000&auto=format&fit=crop", 
   3: "https://lh3.googleusercontent.com/d/1MQ4UL2Hi1ZBSSggzc_5rXvOgVfic9maf?q=80&w=1000&auto=format&fit=crop"  
 };
 
