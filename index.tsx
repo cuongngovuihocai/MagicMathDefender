@@ -128,8 +128,8 @@ const soundManager = new SoundManager();
 
 // --- Background & Visuals ---
 const LEVEL_IMAGES = {
-  1: "https://lh3.googleusercontent.com/d/1JUcHxpLWZ9KXAsTxrG5l2XLO7J2dEHKQ?q=80&w=1000&auto=format&fit=crop", 
-  2: "https://lh3.googleusercontent.com/d/1Y4sjh-PVZVMhqaaOvW063fU2X3h6HEC1?q=80&w=1000&auto=format&fit=crop", 
+  1: "https://lh3.googleusercontent.com/d/1JUcHxpLWZ9KXAsTxrG5l2XLO7J2dEHKQ", 
+  2: "https://lh3.googleusercontent.com/d/1Y4sjh-PVZVMhqaaOvW063fU2X3h6HEC1", 
   3: "https://lh3.googleusercontent.com/d/1MQ4UL2Hi1ZBSSggzc_5rXvOgVfic9maf?q=80&w=1000&auto=format&fit=crop"  
 };
 
@@ -174,6 +174,7 @@ const MagicMathDefense = () => {
   const gameOverHighScoreRef = useRef<HTMLSpanElement>(null);
 
   const [currentLevelUI, setCurrentLevelUI] = useState(1);
+  const [gameDifficulty, setGameDifficulty] = useState<'EASY' | 'NORMAL' | 'HARD'>('HARD');
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Game state
@@ -189,6 +190,7 @@ const MagicMathDefense = () => {
     lastSpawnTime: 0,
     enemies: [] as any[],
     animationFrameId: 0,
+    difficultyMultiplier: 1,
   });
 
   useEffect(() => {
@@ -432,7 +434,10 @@ const MagicMathDefense = () => {
       inputRef.current.value = '';
       state.lastSpawnTime = -10000; 
 
-      const minSpawnRate = state.level === 3 ? 2000 : 1000;
+      // Min spawn rate also respects difficulty
+      const baseMinSpawn = state.level === 3 ? 2000 : 1000;
+      const minSpawnRate = baseMinSpawn * state.difficultyMultiplier;
+      
       if (state.score % 50 === 0) {
         state.spawnRate = Math.max(minSpawnRate, state.spawnRate - 50);
       }
@@ -470,8 +475,8 @@ const MagicMathDefense = () => {
   const startGame = (level: number) => {
     const state = gameState.current;
     state.isGameActive = true; 
-    state.level = level; // Update REF directly for game loop
-    setCurrentLevelUI(level); // Update UI state for background
+    state.level = level; 
+    setCurrentLevelUI(level); 
     
     soundManager.stopBGM();
 
@@ -486,16 +491,28 @@ const MagicMathDefense = () => {
     if (scoreRef.current) scoreRef.current.innerText = '0';
     if (timeDisplayRef.current) timeDisplayRef.current.innerText = '0';
 
+    // Determine Difficulty Multiplier
+    let multiplier = 1;
+    if (gameDifficulty === 'NORMAL') multiplier = 2;
+    if (gameDifficulty === 'EASY') multiplier = 4;
+    state.difficultyMultiplier = multiplier;
+
+    // Base Spawn Rates (Hard mode baseline)
+    let baseSpawnRate = 2000;
+
     if (level === 1) {
         state.enemySpeed = 1.2; 
-        state.spawnRate = 2000; 
+        baseSpawnRate = 2000; 
     } else if (level === 2) {
         state.enemySpeed = 0.8; 
-        state.spawnRate = 3000; 
+        baseSpawnRate = 3000; 
     } else {
         state.enemySpeed = 0.5; 
-        state.spawnRate = 4000; 
+        baseSpawnRate = 4000; 
     }
+
+    // Apply multiplier
+    state.spawnRate = baseSpawnRate * multiplier;
 
     let count = 3;
     setCountdown(3);
@@ -648,6 +665,21 @@ const MagicMathDefense = () => {
             .level-btn-2 { background: #e67e22; }
             .level-btn-3 { background: #e74c3c; }
             
+            .diff-btn {
+                padding: 10px 15px;
+                font-size: 12px;
+                margin: 0 5px;
+                background: #000;
+                color: #7f8c8d;
+                border: 2px solid #7f8c8d;
+            }
+            .diff-btn.active {
+                background: #f39c12;
+                color: #000;
+                border-color: #fff;
+                box-shadow: 0 0 10px #f39c12;
+            }
+            
             @keyframes float {
                 0% { transform: translateY(0px); }
                 50% { transform: translateY(-10px); }
@@ -712,8 +744,23 @@ const MagicMathDefense = () => {
         {/* Start Screen */}
         <div id="start-screen" className="screen" ref={startScreenRef}>
             <h1 style={{padding:'0 20px'}}>MAGIC MATH<br/>DEFENDER</h1>
-            <div style={{marginBottom:'30px', color:'#2ecc71'}}>BEST: <span ref={startHighScoreRef}>0</span></div>
+            <div style={{marginBottom:'20px', color:'#2ecc71'}}>BEST: <span ref={startHighScoreRef}>0</span></div>
             
+            <div style={{marginBottom: '20px'}}>
+                <div style={{fontSize: '10px', color: '#bdc3c7', marginBottom: '10px', textAlign: 'center'}}>SELECT DIFFICULTY</div>
+                <div style={{display: 'flex', justifyContent: 'center'}}>
+                    <button 
+                        className={`btn diff-btn ${gameDifficulty === 'EASY' ? 'active' : ''}`} 
+                        onClick={() => setGameDifficulty('EASY')}>EASY</button>
+                    <button 
+                        className={`btn diff-btn ${gameDifficulty === 'NORMAL' ? 'active' : ''}`} 
+                        onClick={() => setGameDifficulty('NORMAL')}>NORMAL</button>
+                    <button 
+                        className={`btn diff-btn ${gameDifficulty === 'HARD' ? 'active' : ''}`} 
+                        onClick={() => setGameDifficulty('HARD')}>HARD</button>
+                </div>
+            </div>
+
             <div style={{display:'flex', flexDirection:'column', gap:'15px'}}>
                 <button className="btn level-btn-1" onClick={() => startGame(1)}>LVL 1 (SUM &lt; 20)</button>
                 <button className="btn level-btn-2" onClick={() => startGame(2)}>LVL 2 (SUM &lt; 50)</button>
